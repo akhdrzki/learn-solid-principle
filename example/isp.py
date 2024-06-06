@@ -27,6 +27,17 @@ class Order:
         return total
 
 
+class SMSAuthorizer:
+    authorized = False
+
+    def verify_code(self, code: str):
+        print(f"verifying code {code}")
+        self.authorized = True
+
+    def is_authorized(self) -> bool:
+        return self.authorized
+
+
 """
 Abstract method.
 """
@@ -38,28 +49,13 @@ class PaymentProcessor(ABC):
         pass
 
 
-"""
-This new subclass has auth_sms abstaction so it solve the matter for specific subclass acquired
-"""
-
-
-class PaymentProcessor_with_SMSAuth(PaymentProcessor):
-    @abstractmethod
-    def auth_sms(self, code: str) -> None:
-        pass
-
-
-class DebitPaymentProcessor(PaymentProcessor_with_SMSAuth):
-    def __init__(self, security_code: str) -> None:
+class DebitPaymentProcessor(PaymentProcessor):
+    def __init__(self, security_code: str, authorizer: SMSAuthorizer) -> None:
         self.security_code = security_code
-        self.verified = False
-
-    def auth_sms(self, code: str) -> None:
-        print(f"verifying sms code {code}")
-        self.verified = True
+        self.authorizer = authorizer
 
     def pay(self, order: Order) -> None:
-        if not self.verified:
+        if not self.authorizer.is_authorized():
             raise Exception("unauthorized")
 
         print("processing debit payment")
@@ -79,17 +75,13 @@ class CreditPaymentProcessor(PaymentProcessor):
         print(status)
 
 
-class GopayPaymentProcessor(PaymentProcessor_with_SMSAuth):
-    def __init__(self, security_code: str) -> None:
+class GopayPaymentProcessor(PaymentProcessor):
+    def __init__(self, security_code: str, authorizer: SMSAuthorizer) -> None:
         self.security_code = security_code
-        self.verified = False
-
-    def auth_sms(self, code: str) -> None:
-        print(f"verifying sms code {code}")
-        self.verified = True
+        self.authorizer = authorizer
 
     def pay(self, order: Order) -> None:
-        if not self.verified:
+        if not self.authorizer.is_authorized():
             raise Exception("unauthorized")
 
         print("processing gopay payment")
@@ -111,12 +103,12 @@ class PaypalPaymentProcessor(PaymentProcessor):
 
 def main():
     order = Order()
-    payment = GopayPaymentProcessor("123")
-
+    authorizer = SMSAuthorizer()
+    payment = GopayPaymentProcessor("123", authorizer)
+    authorizer.verify_code("l9k0m7")
     order.add_item("sari roti", 3, 7500)
     order.add_item("indomilk choco", 2, 5300)
     print(order.total_price())
-    payment.auth_sms("0091")
     payment.pay(order)
 
 
