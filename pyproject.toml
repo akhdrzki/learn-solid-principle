@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "learn-solid-principle"
+version = "0.1.0"
+description = "this repository for learning how SOLID principle concept"
+authors = ["akhdrzki <akhadirizky@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+abcmeta = "^2.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
